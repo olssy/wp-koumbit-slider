@@ -1,0 +1,323 @@
+/* wp-koumbit-slider — frontend slider styles */
+
+/* -------------------------------------------------------------------------
+   Container
+   ------------------------------------------------------------------------- */
+.wpk-slider {
+	position: relative;
+	overflow: hidden;
+	height: var( --wpk-slider-height, 500px );
+	background: #000;
+	isolation: isolate;
+}
+
+.wpk-slider--vertical {
+	height: var( --wpk-slider-height, 500px );
+}
+
+/* -------------------------------------------------------------------------
+   Track & slides
+   ------------------------------------------------------------------------- */
+.wpk-slider-track {
+	display: flex;
+	width: 100%;
+	height: 100%;
+}
+
+.wpk-slider--vertical .wpk-slider-track {
+	flex-direction: column;
+}
+
+.wpk-slide {
+	position: relative;
+	flex-shrink: 0;
+	width: 100%;
+	height: 100%;
+	background-size: cover;
+	background-position: center;
+	background-repeat: no-repeat;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+/* -------------------------------------------------------------------------
+   Content positioning
+   ------------------------------------------------------------------------- */
+.wpk-slide-content {
+	position: relative;
+	z-index: 2;
+	padding: 2rem;
+	max-width: 800px;
+}
+
+.wpk-text-center .wpk-slide-content { text-align: center; }
+.wpk-text-left   .wpk-slide-content { text-align: left;   }
+.wpk-text-right  .wpk-slide-content { text-align: right;  }
+
+.wpk-slide-title {
+	font-size: clamp( 1.5rem, 4vw, 3rem );
+	font-weight: 700;
+	color: #fff;
+	margin: 0 0 0.5em;
+	text-shadow: 0 2px 4px rgba( 0, 0, 0, 0.5 );
+}
+
+.wpk-slide-subtitle {
+	font-size: clamp( 1rem, 2.5vw, 1.5rem );
+	color: rgba( 255, 255, 255, 0.9 );
+	margin: 0 0 1em;
+}
+
+.wpk-slide-body {
+	color: rgba( 255, 255, 255, 0.85 );
+	margin-bottom: 1em;
+}
+
+/* -------------------------------------------------------------------------
+   Overlay
+   ------------------------------------------------------------------------- */
+.wpk-slide-overlay {
+	position: absolute;
+	inset: 0;
+	z-index: 1;
+}
+
+/* -------------------------------------------------------------------------
+   Buttons
+   ------------------------------------------------------------------------- */
+.wpk-btn {
+	display: inline-block;
+	padding: 0.6em 1.4em;
+	border-radius: 4px;
+	font-weight: 600;
+	text-decoration: none;
+	cursor: pointer;
+	line-height: 1.4;
+	border: 2px solid transparent;
+}
+
+.wpk-btn-primary {
+	background: var( --wp--preset--color--primary, #0073aa );
+	color: #fff;
+	border-color: var( --wp--preset--color--primary, #0073aa );
+}
+
+.wpk-btn-secondary {
+	background: var( --wp--preset--color--secondary, #005177 );
+	color: #fff;
+	border-color: var( --wp--preset--color--secondary, #005177 );
+}
+
+.wpk-btn-outline {
+	background: transparent;
+	color: #fff;
+	border-color: #fff;
+}
+
+.wpk-btn-ghost {
+	background: rgba( 255, 255, 255, 0.15 );
+	color: #fff;
+	border-color: rgba( 255, 255, 255, 0.5 );
+}
+
+/* -------------------------------------------------------------------------
+   Navigation arrows
+   ------------------------------------------------------------------------- */
+.wpk-slider-prev,
+.wpk-slider-next {
+	position: absolute;
+	top: 50%;
+	transform: translateY( -50% );
+	z-index: 10;
+	background: rgba( 0, 0, 0, 0.45 );
+	color: #fff;
+	border: none;
+	border-radius: 50%;
+	width: 44px;
+	height: 44px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	cursor: pointer;
+	padding: 0;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-slider-prev,
+	.wpk-slider-next {
+		transition: background 0.2s ease, opacity 0.2s ease;
+	}
+}
+
+.wpk-slider-prev:hover,
+.wpk-slider-next:hover {
+	background: rgba( 0, 0, 0, 0.7 );
+}
+
+.wpk-slider-prev:disabled,
+.wpk-slider-next:disabled {
+	opacity: 0.3;
+	cursor: default;
+}
+
+.wpk-slider-prev { left: 12px; }
+.wpk-slider-next { right: 12px; }
+
+.wpk-slider--vertical .wpk-slider-prev,
+.wpk-slider--vertical .wpk-slider-next {
+	top: auto;
+	left: 50%;
+	transform: translateX( -50% );
+}
+
+.wpk-slider--vertical .wpk-slider-prev { top: 12px; }
+.wpk-slider--vertical .wpk-slider-next { bottom: 12px; top: auto; }
+
+.wpk-slider-prev svg,
+.wpk-slider-next svg {
+	fill: currentColor;
+}
+
+/* -------------------------------------------------------------------------
+   Pagination — bullets
+   ------------------------------------------------------------------------- */
+.wpk-slider-pagination {
+	position: absolute;
+	z-index: 10;
+}
+
+.wpk-pagination-bullets {
+	bottom: 12px;
+	left: 50%;
+	transform: translateX( -50% );
+	display: flex;
+	gap: 6px;
+}
+
+.wpk-slider--vertical .wpk-pagination-bullets {
+	bottom: auto;
+	right: 12px;
+	left: auto;
+	top: 50%;
+	transform: translateY( -50% );
+	flex-direction: column;
+}
+
+.wpk-pagination-bullet {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+	background: rgba( 255, 255, 255, 0.5 );
+	border: none;
+	padding: 0;
+	cursor: pointer;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-pagination-bullet {
+		transition: background 0.2s ease, transform 0.2s ease;
+	}
+}
+
+.wpk-pagination-bullet.wpk-bullet-active {
+	background: #fff;
+	transform: scale( 1.3 );
+}
+
+/* -------------------------------------------------------------------------
+   Pagination — fraction
+   ------------------------------------------------------------------------- */
+.wpk-pagination-fraction {
+	bottom: 12px;
+	right: 16px;
+	background: rgba( 0, 0, 0, 0.45 );
+	color: #fff;
+	padding: 2px 8px;
+	border-radius: 10px;
+	font-size: 0.85em;
+}
+
+/* -------------------------------------------------------------------------
+   Pagination — progress bar
+   ------------------------------------------------------------------------- */
+.wpk-pagination-progress {
+	bottom: 0;
+	left: 0;
+	right: 0;
+	height: 4px;
+	background: rgba( 255, 255, 255, 0.3 );
+}
+
+.wpk-progress-bar {
+	height: 100%;
+	background: #fff;
+	transform-origin: left center;
+	transform: scaleX( 0 );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-progress-bar {
+		transition: transform 0.4s ease;
+	}
+}
+
+.wpk-slider--vertical .wpk-pagination-progress {
+	bottom: auto;
+	right: 0;
+	top: 0;
+	left: auto;
+	width: 4px;
+	height: 100%;
+}
+
+.wpk-slider--vertical .wpk-progress-bar {
+	width: 100%;
+	transform-origin: center top;
+	transform: scaleY( 0 );
+}
+
+/* -------------------------------------------------------------------------
+   Focus styles (a11y)
+   ------------------------------------------------------------------------- */
+.wpk-slider:focus {
+	outline: 3px solid var( --wp--preset--color--primary, #0073aa );
+	outline-offset: 2px;
+}
+
+.wpk-slider-prev:focus-visible,
+.wpk-slider-next:focus-visible,
+.wpk-pagination-bullet:focus-visible {
+	outline: 3px solid #fff;
+	outline-offset: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   Block editor preview placeholder
+   ------------------------------------------------------------------------- */
+.wpk-block-preview {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 24px;
+	background: #f6f7f7;
+	border: 2px dashed #c3c4c7;
+	border-radius: 4px;
+	font-weight: 500;
+	color: #1d2327;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+@media ( max-width: 480px ) {
+	.wpk-slide-content {
+		padding: 1rem;
+	}
+
+	.wpk-slider-prev,
+	.wpk-slider-next {
+		width: 36px;
+		height: 36px;
+	}
+}

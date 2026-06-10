@@ -1,0 +1,182 @@
+/* wp-koumbit-slider — admin editor styles */
+
+/* -------------------------------------------------------------------------
+   Slide list
+   ------------------------------------------------------------------------- */
+#wpk-slider-editor {
+	margin-top: 8px;
+}
+
+.wpk-slide-row {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 10px 12px;
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	background: #fff;
+	margin-bottom: 6px;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.wpk-slide-preview {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	min-width: 0;
+}
+
+.wpk-slide-thumb {
+	width: 60px;
+	height: 40px;
+	object-fit: cover;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	flex-shrink: 0;
+}
+
+.wpk-thumb-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 60px;
+	height: 40px;
+	background: #f6f7f7;
+	border: 1px solid #dcdcde;
+	border-radius: 2px;
+	font-size: 18px;
+	flex-shrink: 0;
+}
+
+.wpk-slide-label {
+	font-weight: 500;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 300px;
+}
+
+.wpk-slide-actions {
+	display: flex;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+/* -------------------------------------------------------------------------
+   Edit panel (inline form)
+   ------------------------------------------------------------------------- */
+.wpk-slide-edit-panel {
+	width: 100%;
+	border-top: 1px solid #dcdcde;
+	margin-top: 8px;
+	padding-top: 12px;
+}
+
+.wpk-edit-form {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 24px;
+}
+
+.wpk-field-group {
+	margin-bottom: 12px;
+}
+
+.wpk-field-group label {
+	display: block;
+	font-weight: 600;
+	margin-bottom: 4px;
+}
+
+.wpk-field-group fieldset {
+	border: 1px solid #dcdcde;
+	border-radius: 3px;
+	padding: 8px 12px;
+}
+
+.wpk-field-group legend {
+	font-weight: 600;
+	padding: 0 4px;
+}
+
+.wpk-img-picker {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.wpk-edit-actions {
+	grid-column: 1 / -1;
+	padding-top: 4px;
+}
+
+/* -------------------------------------------------------------------------
+   Config sections (progressive disclosure)
+   ------------------------------------------------------------------------- */
+.wpk-config-section {
+	border: 1px solid #c3c4c7;
+	border-radius: 3px;
+	margin-bottom: 6px;
+	background: #fff;
+}
+
+.wpk-section-toggle {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	width: 100%;
+	padding: 10px 12px;
+	background: none;
+	border: none;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 600;
+	text-align: left;
+	color: #1d2327;
+}
+
+.wpk-section-toggle:hover {
+	background: #f6f7f7;
+}
+
+.wpk-section-icon::before {
+	content: "▶";
+	display: inline-block;
+	font-size: 10px;
+	transition: transform 0.15s ease;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-section-icon::before {
+		transition: transform 0.15s ease;
+	}
+}
+
+.wpk-section-open .wpk-section-icon::before {
+	transform: rotate(90deg);
+}
+
+.wpk-section-body {
+	padding: 0 12px 12px;
+	border-top: 1px solid #dcdcde;
+}
+
+.wpk-config-table {
+	margin-top: 8px;
+}
+
+/* -------------------------------------------------------------------------
+   Responsive
+   ------------------------------------------------------------------------- */
+@media ( max-width: 782px ) {
+	.wpk-edit-form {
+		grid-template-columns: 1fr;
+	}
+
+	.wpk-slide-row {
+		flex-direction: column;
+		align-items: flex-start;
+	}
+}

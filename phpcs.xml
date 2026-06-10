@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<ruleset name="WP Koumbit Slider">
+	<description>WordPress Coding Standards for wp-koumbit-slider</description>
+
+	<file>.</file>
+
+	<exclude-pattern>vendor/</exclude-pattern>
+	<exclude-pattern>node_modules/</exclude-pattern>
+
+	<rule ref="WordPress-Extra" />
+
+	<config name="minimum_wp_version" value="6.4" />
+	<config name="minimum_supported_wp_version" value="6.4" />
+</ruleset>

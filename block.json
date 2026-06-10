@@ -1,0 +1,24 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "wpk-slider/slider",
+	"version": "1.0.0",
+	"title": "Koumbit Slider",
+	"category": "media",
+	"icon": "images-alt2",
+	"description": "Embed a Koumbit Slider by selecting its title.",
+	"keywords": [ "slider", "carousel", "koumbit" ],
+	"textdomain": "wp-koumbit-slider",
+	"attributes": {
+		"sliderId": {
+			"type": "integer",
+			"default": 0
+		}
+	},
+	"supports": {
+		"html": false,
+		"align": [ "wide", "full" ]
+	},
+	"editorScript": "file:./assets/js/block-editor.js",
+	"style": "file:./assets/css/frontend.css"
+}
