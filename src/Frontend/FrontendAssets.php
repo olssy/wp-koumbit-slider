@@ -22,7 +22,36 @@ defined( 'ABSPATH' ) || exit;
 class FrontendAssets {
 
 	public function init(): void {
+		add_action( 'wp_enqueue_scripts', array( $this, 'register' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue' ) );
+	}
+
+	/**
+	 * Registers all plugin scripts/styles so they can be enqueued on demand.
+	 *
+	 * Swiper is loaded from a filterable CDN URL; sites that host Swiper locally
+	 * can override both URLs via the wpk_slider_swiper_js_url / wpk_slider_swiper_css_url filters.
+	 */
+	public function register(): void {
+		$swiper_js_url = apply_filters(
+			'wpk_slider_swiper_js_url',
+			'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js'
+		);
+		$swiper_css_url = apply_filters(
+			'wpk_slider_swiper_css_url',
+			'https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css'
+		);
+
+		wp_register_script( 'swiper', $swiper_js_url, array(), '11', true );
+		wp_register_style( 'swiper', $swiper_css_url, array(), '11' );
+
+		wp_register_script(
+			'wpk-slider-swiper-init',
+			WPK_SLIDER_URL . 'assets/js/swiper-init.js',
+			array( 'swiper' ),
+			WPK_SLIDER_VERSION,
+			true
+		);
 	}
 
 	public function maybe_enqueue(): void {

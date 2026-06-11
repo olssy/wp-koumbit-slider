@@ -1,18 +1,25 @@
 # Handoff — WP Koumbit Slider
 
 **Last updated:** 2026-06-10
-**Status:** v1.0.0 complete, pending git init + remote push
+**Status:** v1.1.0 complete, pushed to GitHub
 
 ---
 
 ## Current state
 
-v1.0.0 is feature-complete and ready to ship. All files are written; git has not yet been initialised for this plugin.
+v1.1.0 is feature-complete and shipped.
+
+### What's in v1.1.0 (additions over v1.0.0)
+
+- **Lazy loading** — `data-bg` attribute + IntersectionObserver in `slider.js`; shimmer CSS placeholder; first 2 slides always load immediately; adjacent slides preloaded on navigation; falls back to loading all slides when IntersectionObserver is unavailable
+- **Thumbnail strip pagination** — `pagination: 'thumbstrip'` config value; PHP renders `<div.wpk-slider-outer>` wrapper + `<div.wpk-slider-thumbstrip>` with server-rendered `<button.wpk-thumb>` elements; JS wires click handlers; full ARIA `role="tab"` + `aria-selected`
+- **Per-slide timing** — `custom_speed` (ms, 0 = inherit) and `custom_easing` fields on each slide; output as `data-speed` / `data-easing` attributes; consumed in `slider.js` `goTo()` to temporarily override track transition for that one move
+- **Swiper.js** — opt-in per slider via "Swiper Library" settings section; `use_swiper` flag in config; effects: slide, fade, cube, flip, coverflow, cards; `swiper-init.js` translates our config to Swiper options; CDN URLs filterable via `wpk_slider_swiper_js_url` / `wpk_slider_swiper_css_url`
 
 ### What's in v1.0.0
 
 - `wpk_slider` CPT with title-only editing
-- Slide manager meta box: WP media picker integration, drag-order (up/down buttons), inline per-slide edit panel with full config
+- Slide manager meta box: WP media picker integration, drag-order (up/down buttons), inline per-slide edit panels with full config
 - Progressive-disclosure settings meta box: Layout, Transitions, Autoplay, Controls, Advanced
 - Server-side slider renderer (`SliderRenderer`)
 - `[wpk_slider id="X"]` shortcode
@@ -27,38 +34,21 @@ v1.0.0 is feature-complete and ready to ship. All files are written; git has not
 
 ## Open decisions
 
-### 1. Widget registration hook
+### 1. Settings page
 
-`Widget.php` is registered but the `widgets_init` hook is not yet wired in the main bootstrap (`wp-koumbit-slider.php`). Verify this is connected before testing.
+There is no dedicated Settings page for `wpk_slider_menu_location`. The option is written by `Activator` on activation. To change menu location, an admin must currently do it via `update_option`. A settings tab is planned for v1.2.
 
-### 2. Block `editorScript` path
+### 2. Swiper thumbstrip integration
 
-`block.json` references `file:./assets/js/block-editor.js` using `editorScript`. This requires WordPress 6.1+ for the `file:` prefix. Confirmed `requires at least: 6.4` so it's fine, but note that if the block registration fails, check that the path resolves relative to the plugin root — not `src/`.
+`swiper-init.js` wires `thumbs.swiper` via an inline config object. Swiper 11 supports this pattern but it requires the Thumbs module to be included in the bundle — the CDN `swiper-bundle.min.js` includes it, so this should work. If there are issues, the fallback is to instantiate two separate Swiper instances (one for the main slider, one for the thumbstrip element).
 
-### 3. Settings page
+### 3. PHPUnit tests
 
-There is no dedicated Settings page for `wpk_slider_menu_location`. The option is written by `Activator` on activation. To change menu location, an admin must currently do it via `update_option` or a future settings tab. A settings tab should be added in v1.1.
-
-### 4. Lazy loading (config option)
-
-The `lazy` config flag is accepted and stored but not yet implemented in `SliderRenderer` or `slider.js`. When `lazy: true` is set, images should use `loading="lazy"` and/or IntersectionObserver deferral. Marked for v1.1.
-
----
-
-## Before tagging v1.0.0
-
-1. `git init` in this directory
-2. `git remote add origin https://github.com/olssy/wp-koumbit-slider`
-3. `gh repo create olssy/wp-koumbit-slider --public`
-4. Stage and commit all files
-5. `git tag v1.0.0 && git push origin main --tags`
-6. Add `wp-koumbit-slider | WPKoumbit\Slider\ | WPK_SLIDER_` to parent `CLAUDE.md` plugin registry
+No tests exist yet. `SliderRenderer::render()`, `EditScreen::sanitize_config()`, and `PostDuplicator` equivalent (n/a here) should be the first targets.
 
 ---
 
 ## Known limitations
 
-- No Settings page UI — menu location defaults to `suite` and cannot be changed from the admin without a code change or `update_option`.
-- `lazy` image loading not yet implemented in the frontend runtime.
-- No PHPUnit tests.
-- Block registration relies on `window.wp.*` globals being available in the editor — standard for WP 6.4+ but blocks without a build step cannot access the full Gutenberg store outside the editor context.
+- No Settings page UI — menu location and Swiper CDN URLs have no admin UI; admins use `update_option` or filter hooks.
+- Block registration relies on `window.wp.*` globals — standard for WP 6.4+ but blocks without a build step cannot access the full Gutenberg store outside the editor context.

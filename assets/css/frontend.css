@@ -293,6 +293,124 @@
 }
 
 /* -------------------------------------------------------------------------
+   Lazy image loading
+   ------------------------------------------------------------------------- */
+
+/* Shimmer placeholder shown before the image has loaded */
+.wpk-slide-lazy:not(.wpk-slide-loaded) {
+	background-color: #1a1a1a;
+	background-image: linear-gradient(
+		90deg,
+		rgba( 255, 255, 255, 0 ) 0%,
+		rgba( 255, 255, 255, 0.06 ) 50%,
+		rgba( 255, 255, 255, 0 ) 100%
+	);
+	background-size: 200% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-slide-lazy:not(.wpk-slide-loaded) {
+		animation: wpk-shimmer 1.5s infinite linear;
+	}
+
+	@keyframes wpk-shimmer {
+		0%   { background-position: 200% 0; }
+		100% { background-position: -200% 0; }
+	}
+
+	.wpk-slide-lazy {
+		transition: background-image 0.3s ease;
+	}
+}
+
+/* -------------------------------------------------------------------------
+   Thumbnail strip pagination
+   ------------------------------------------------------------------------- */
+.wpk-slider-outer {
+	display: flex;
+	flex-direction: column;
+}
+
+.wpk-slider-thumbstrip {
+	display: flex;
+	gap: 6px;
+	padding: 8px 0 0;
+	overflow-x: auto;
+	overflow-y: hidden;
+	-webkit-overflow-scrolling: touch;
+	scrollbar-width: thin;
+}
+
+.wpk-thumb {
+	flex-shrink: 0;
+	width: 80px;
+	height: 54px;
+	padding: 0;
+	border: 2px solid transparent;
+	border-radius: 3px;
+	cursor: pointer;
+	background: #1a1a1a;
+	overflow: hidden;
+	opacity: 0.6;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+	.wpk-thumb {
+		transition: opacity 0.2s ease, border-color 0.2s ease;
+	}
+}
+
+.wpk-thumb:hover {
+	opacity: 0.85;
+}
+
+.wpk-thumb.wpk-thumb-active {
+	border-color: var( --wp--preset--color--primary, #0073aa );
+	opacity: 1;
+}
+
+.wpk-thumb img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.wpk-thumb-placeholder {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 100%;
+	color: rgba( 255, 255, 255, 0.5 );
+	font-size: 14px;
+	font-weight: 600;
+}
+
+.wpk-thumb:focus-visible {
+	outline: 3px solid var( --wp--preset--color--primary, #0073aa );
+	outline-offset: 2px;
+}
+
+/* Vertical slider — thumbstrip on the right */
+.wpk-slider-outer:has( .wpk-slider--vertical ) {
+	flex-direction: row;
+	align-items: flex-start;
+}
+
+.wpk-slider-outer:has( .wpk-slider--vertical ) .wpk-slider-thumbstrip {
+	flex-direction: column;
+	padding: 0 0 0 8px;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+
+.wpk-slider-outer:has( .wpk-slider--vertical ) .wpk-thumb {
+	width: 80px;
+	height: 54px;
+}
+
+/* -------------------------------------------------------------------------
    Block editor preview placeholder
    ------------------------------------------------------------------------- */
 .wpk-block-preview {

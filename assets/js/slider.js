@@ -1,30 +1,21 @@
 /**
  * Vanilla JS slider runtime for wp-koumbit-slider.
  *
- * Reads configuration from data-config JSON on each .wpk-slider element
- * and builds the interactive carousel entirely without external libraries.
+ * Reads configuration from data-config JSON on each .wpk-slider element.
+ * Skips .wpk-slider-swiper elements — those are handled by swiper-init.js.
  *
- * Supports:
- *   - slide and fade effects
- *   - autoplay with pause-on-hover
- *   - prev/next navigation buttons
- *   - bullet, fraction, progress-bar, and no pagination
- *   - keyboard arrow navigation
- *   - Pointer Events API touch/swipe
- *   - ARIA roles and live-region updates
- *   - prefers-reduced-motion
+ * v1.1 additions:
+ *   - Lazy image loading via IntersectionObserver (lazy: true config)
+ *   - Thumbnail strip pagination (pagination: 'thumbstrip')
+ *   - Per-slide speed/easing overrides (data-speed, data-easing attributes)
  *
- * Initialises all .wpk-slider elements on DOMContentLoaded and exposes
- * window.WPKSlider.init(el) for dynamic insertion.
+ * @since 1.0.0
  */
 ( function ( global ) {
 	'use strict';
 
 	var reducedMotion = global.matchMedia( '(prefers-reduced-motion: reduce)' ).matches;
 
-	// -------------------------------------------------------------------------
-	// Defaults
-	// -------------------------------------------------------------------------
 	var DEFAULTS = {
 		effect: 'slide',
 		speed: 500,
@@ -49,6 +40,9 @@
 	// Slider factory
 	// -------------------------------------------------------------------------
 	function createSlider( el ) {
+		// Swiper mode — handled by swiper-init.js.
+		if ( el.classList.contains( 'wpk-slider-swiper' ) ) return;
+
 		var rawCfg = {};
 		try { rawCfg = JSON.parse( el.dataset.config || '{}' ); } catch ( e ) { /* noop */ }
 
@@ -59,21 +53,27 @@
 		var nextBtn = el.querySelector( '.wpk-slider-next' );
 		var paginationEl = el.querySelector( '.wpk-slider-pagination' );
 
+		// Thumbstrip lives outside the slider in a sibling .wpk-slider-thumbstrip element.
+		var thumbstripEl = null;
+		if ( 'thumbstrip' === cfg.pagination ) {
+			var outer = el.closest( '.wpk-slider-outer' );
+			if ( outer ) {
+				thumbstripEl = outer.querySelector( '.wpk-slider-thumbstrip' );
+			}
+		}
+
 		if ( slides.length < 1 ) return;
 
 		var current = 0;
 		var total = slides.length;
 		var autoplayTimer = null;
 		var isAnimating = false;
-
 		var isHorizontal = 'vertical' !== cfg.direction;
-
-		// Pointer-swipe state.
 		var pointerStart = null;
 		var pointerStartTime = 0;
 
 		// -------------------------------------------------------------------------
-		// Initialise layout
+		// Init
 		// -------------------------------------------------------------------------
 		function init() {
 			el.classList.add( 'wpk-slider-ready' );
@@ -83,6 +83,8 @@
 			} else {
 				initSlideLayout();
 			}
+
+			if ( cfg.lazy ) initLazy();
 
 			buildPagination();
 			updateA11y();
@@ -97,13 +99,18 @@
 			if ( nextBtn ) nextBtn.addEventListener( 'click', next );
 		}
 
+		// -------------------------------------------------------------------------
+		// Layout initialisation
+		// -------------------------------------------------------------------------
 		function initFadeLayout() {
 			slides.forEach( function ( s, i ) {
 				s.style.position = 'absolute';
 				s.style.inset = '0';
 				s.style.opacity = i === 0 ? '1' : '0';
-				s.style.transition = reducedMotion ? 'none' : 'opacity ' + cfg.speed + 'ms ease';
 				s.style.zIndex = i === 0 ? '1' : '0';
+				if ( ! reducedMotion ) {
+					s.style.transition = 'opacity ' + cfg.speed + 'ms ease';
+				}
 			} );
 			track.style.position = 'relative';
 		}
@@ -129,7 +136,65 @@
 				}
 			} );
 
-			applyTranslate( 0, false );
+			applyTranslate( 0, false, cfg.speed, 'ease' );
+		}
+
+		// -------------------------------------------------------------------------
+		// Lazy image loading via IntersectionObserver
+		// -------------------------------------------------------------------------
+		function initLazy() {
+			// Always load the first 2 slides immediately so there's no blank first frame.
+			slides.slice( 0, Math.min( 2, total ) ).forEach( loadSlide );
+
+			if ( ! ( 'IntersectionObserver' in global ) ) {
+				// Fallback: load all slides at once.
+				slides.forEach( loadSlide );
+				return;
+			}
+
+			// rootMargin pre-loads slides ~1 viewport ahead of the scroll position.
+			var margin = isHorizontal ? '0px 100% 0px 100%' : '100% 0px 100% 0px';
+
+			var observer = new IntersectionObserver( function ( entries ) {
+				entries.forEach( function ( entry ) {
+					if ( entry.isIntersecting ) {
+						loadSlide( entry.target );
+						observer.unobserve( entry.target );
+					}
+				} );
+			}, { rootMargin: margin } );
+
+			slides.forEach( function ( s ) {
+				if ( s.dataset.bg ) {
+					observer.observe( s );
+				}
+			} );
+		}
+
+		/**
+		 * Swaps a slide's data-bg into an actual background-image style.
+		 *
+		 * @param {HTMLElement} slideEl
+		 */
+		function loadSlide( slideEl ) {
+			var bg = slideEl.dataset.bg;
+			if ( ! bg ) return;
+			slideEl.style.backgroundImage = 'url(' + bg + ')';
+			slideEl.classList.add( 'wpk-slide-loaded' );
+			delete slideEl.dataset.bg;
+		}
+
+		/**
+		 * Pre-loads the slides adjacent to the current index.
+		 * Called after every navigation to stay ahead of the user.
+		 *
+		 * @param {number} index
+		 */
+		function preloadAdjacent( index ) {
+			[ index - 1, index, index + 1 ].forEach( function ( i ) {
+				var idx = ( ( i % total ) + total ) % total;
+				loadSlide( slides[ idx ] );
+			} );
 		}
 
 		// -------------------------------------------------------------------------
@@ -143,10 +208,17 @@
 
 			current = clamped;
 
+			// Pre-load surrounding slides when lazy is active.
+			if ( cfg.lazy ) preloadAdjacent( current );
+
+			// Per-slide timing overrides.
+			var slideSpeed = parseInt( slides[ current ].dataset.speed, 10 ) || cfg.speed;
+			var slideEasing = slides[ current ].dataset.easing || 'ease';
+
 			if ( 'fade' === cfg.effect ) {
-				animateFade( animate );
+				animateFade( animate !== false, slideSpeed, slideEasing );
 			} else {
-				applyTranslate( current, animate !== false );
+				applyTranslate( current, animate !== false, slideSpeed, slideEasing );
 			}
 
 			updatePagination();
@@ -174,7 +246,7 @@
 		// -------------------------------------------------------------------------
 		// Animation
 		// -------------------------------------------------------------------------
-		function applyTranslate( index, animate ) {
+		function applyTranslate( index, animate, speed, easing ) {
 			var spv = cfg.slidesPerView;
 			var gap = cfg.spaceBetween;
 			var pct = ( 100 / spv ) * index;
@@ -183,7 +255,7 @@
 
 			if ( animate && ! reducedMotion ) {
 				isAnimating = true;
-				track.style.transition = 'transform ' + cfg.speed + 'ms ease';
+				track.style.transition = 'transform ' + speed + 'ms ' + easing;
 				track.addEventListener( 'transitionend', onTransitionEnd, { once: true } );
 			} else {
 				track.style.transition = 'none';
@@ -196,15 +268,15 @@
 			}
 		}
 
-		function animateFade( animate ) {
+		function animateFade( animate, speed, easing ) {
 			slides.forEach( function ( s, i ) {
 				if ( animate && ! reducedMotion ) {
-					s.style.transition = 'opacity ' + cfg.speed + 'ms ease';
+					s.style.transition = 'opacity ' + speed + 'ms ' + easing;
 				} else {
 					s.style.transition = 'none';
 				}
 				s.style.opacity = i === current ? '1' : '0';
-				s.style.zIndex = i === current ? '1' : '0';
+				s.style.zIndex  = i === current ? '1' : '0';
 			} );
 		}
 
@@ -216,6 +288,10 @@
 		// Pagination
 		// -------------------------------------------------------------------------
 		function buildPagination() {
+			if ( thumbstripEl ) {
+				buildThumbstrip();
+				return;
+			}
 			if ( ! paginationEl ) return;
 
 			if ( 'bullets' === cfg.pagination ) {
@@ -240,7 +316,22 @@
 			updatePagination();
 		}
 
+		function buildThumbstrip() {
+			if ( ! thumbstripEl ) return;
+
+			// Wire click handlers onto the pre-rendered PHP thumbnail buttons.
+			var thumbBtns = thumbstripEl.querySelectorAll( '.wpk-thumb' );
+			thumbBtns.forEach( function ( btn ) {
+				var idx = parseInt( btn.dataset.index, 10 );
+				btn.addEventListener( 'click', function () { goTo( idx ); } );
+			} );
+		}
+
 		function updatePagination() {
+			if ( thumbstripEl ) {
+				updateThumbstrip();
+				return;
+			}
 			if ( ! paginationEl ) return;
 
 			if ( 'bullets' === cfg.pagination ) {
@@ -266,6 +357,16 @@
 			}
 		}
 
+		function updateThumbstrip() {
+			if ( ! thumbstripEl ) return;
+			var thumbBtns = thumbstripEl.querySelectorAll( '.wpk-thumb' );
+			thumbBtns.forEach( function ( btn, i ) {
+				var active = i === current;
+				btn.classList.toggle( 'wpk-thumb-active', active );
+				btn.setAttribute( 'aria-selected', active ? 'true' : 'false' );
+			} );
+		}
+
 		// -------------------------------------------------------------------------
 		// ARIA
 		// -------------------------------------------------------------------------
@@ -282,9 +383,6 @@
 					}
 				} );
 			} );
-
-			// Announce to screen readers.
-			el.setAttribute( 'aria-label', el.getAttribute( 'aria-label' ) || '' );
 		}
 
 		function updateControls() {
@@ -301,9 +399,7 @@
 		// -------------------------------------------------------------------------
 		function startAutoplay() {
 			stopAutoplay();
-			autoplayTimer = global.setInterval( function () {
-				next();
-			}, cfg.autoplayDelay );
+			autoplayTimer = global.setInterval( function () { next(); }, cfg.autoplayDelay );
 		}
 
 		function stopAutoplay() {
@@ -350,26 +446,18 @@
 
 			el.addEventListener( 'pointerup', function ( e ) {
 				if ( ! pointerStart ) return;
-
 				var dx = e.clientX - pointerStart.x;
 				var dy = e.clientY - pointerStart.y;
 				var dt = Date.now() - pointerStartTime;
-				var threshold = 40;
-				var maxDuration = 500;
-
 				pointerStart = null;
 
-				if ( dt > maxDuration ) return;
-
+				if ( dt > 500 ) return;
 				var delta = isHorizontal ? dx : dy;
-
-				if ( Math.abs( delta ) < threshold ) return;
+				if ( Math.abs( delta ) < 40 ) return;
 				if ( delta < 0 ) next(); else prev();
 			} );
 
-			el.addEventListener( 'pointercancel', function () {
-				pointerStart = null;
-			} );
+			el.addEventListener( 'pointercancel', function () { pointerStart = null; } );
 		}
 
 		init();
@@ -379,7 +467,7 @@
 	// Boot
 	// -------------------------------------------------------------------------
 	function initAll() {
-		document.querySelectorAll( '.wpk-slider:not(.wpk-slider-ready)' ).forEach( createSlider );
+		document.querySelectorAll( '.wpk-slider:not(.wpk-slider-ready):not(.wpk-slider-swiper)' ).forEach( createSlider );
 	}
 
 	if ( document.readyState === 'loading' ) {

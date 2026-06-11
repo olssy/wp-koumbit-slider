@@ -229,6 +229,18 @@
 			field( 'text', 'slide_custom_class', 'Extra CSS class', slide.custom_class || '' ),
 			'</fieldset>',
 
+			'<fieldset class="wpk-field-group"><legend>Transition timing (overrides slider default)</legend>',
+			field( 'number', 'slide_custom_speed', 'Speed (0 = use slider default)', slide.custom_speed || 0 ),
+			selectField( 'slide_custom_easing', 'Easing', [
+				[ '', 'Default (ease)' ],
+				[ 'ease', 'Ease' ],
+				[ 'ease-in', 'Ease in' ],
+				[ 'ease-out', 'Ease out' ],
+				[ 'ease-in-out', 'Ease in-out' ],
+				[ 'linear', 'Linear' ],
+			], slide.custom_easing || '' ),
+			'</fieldset>',
+
 			// Actions
 			'<div class="wpk-edit-actions">',
 			'<button type="button" class="button button-primary wpk-slide-save">Save slide</button> ',
@@ -282,6 +294,8 @@
 			overlay_color: '#000000',
 			text_align: 'center',
 			custom_class: '',
+			custom_speed: 0,
+			custom_easing: '',
 		} );
 		renderAll();
 
@@ -330,6 +344,8 @@
 			overlay_color: get( 'slide_overlay_color' ),
 			text_align: get( 'slide_text_align' ),
 			custom_class: get( 'slide_custom_class' ),
+			custom_speed: parseInt( get( 'slide_custom_speed' ), 10 ) || 0,
+			custom_easing: get( 'slide_custom_easing' ) || '',
 		};
 
 		renderAll();

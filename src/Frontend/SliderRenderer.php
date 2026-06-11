@@ -14,6 +14,12 @@ defined( 'ABSPATH' ) || exit;
 /**
  * Renders a slider's HTML from post meta.
  *
+ * Supports four rendering modes based on config:
+ *   - Vanilla slide/fade  (default)
+ *   - Swiper.js           (use_swiper: true)
+ *   - Lazy image loading  (lazy: true) — uses data-bg instead of inline style
+ *   - Thumbnail strip     (pagination: 'thumbstrip') — wraps output in outer div
+ *
  * @since 1.0.0
  */
 class SliderRenderer {
@@ -38,10 +44,22 @@ class SliderRenderer {
 		$cfg_raw = get_post_meta( $slider_id, '_wpk_slider_config', true ) ?: '{}';
 		$cfg     = array_merge( EditScreen::config_defaults(), json_decode( $cfg_raw, true ) ?: array() );
 
+		// Enqueue Swiper assets at render-time when this slider needs them.
+		// wp_enqueue_* is safe here — we're inside the template (the_content / widget / block).
+		if ( ! empty( $cfg['use_swiper'] ) ) {
+			wp_enqueue_style( 'swiper' );
+			wp_enqueue_script( 'swiper' );
+			wp_enqueue_script( 'wpk-slider-swiper-init' );
+		}
+
 		$direction = 'vertical' === $cfg['direction'] ? 'vertical' : 'horizontal';
-		$cfg_json  = wp_json_encode(
+		$is_swiper = ! empty( $cfg['use_swiper'] );
+		$is_lazy   = ! empty( $cfg['lazy'] );
+		$is_thumb  = 'thumbstrip' === $cfg['pagination'];
+
+		$cfg_json = wp_json_encode(
 			array(
-				'effect'               => $cfg['effect'],
+				'effect'               => $is_swiper ? $cfg['swiper_effect'] : $cfg['effect'],
 				'speed'                => (int) $cfg['speed'],
 				'loop'                 => (bool) $cfg['loop'],
 				'autoplay'             => (bool) $cfg['autoplay'],
@@ -61,11 +79,28 @@ class SliderRenderer {
 			)
 		);
 
+		$slider_css_classes = array( 'wpk-slider', 'wpk-slider--' . $direction );
+		$track_css_classes  = array( 'wpk-slider-track' );
+		$slide_extra_class  = 'wpk-slide';
+
+		if ( $is_swiper ) {
+			$slider_css_classes[] = 'swiper';
+			$slider_css_classes[] = 'wpk-slider-swiper';
+			$track_css_classes[]  = 'swiper-wrapper';
+			$slide_extra_class   .= ' swiper-slide';
+		}
+
 		$total = count( $slides );
 		ob_start();
+
+		// Thumbnail strip requires an outer wrapper so the strip can sit outside
+		// the slider's overflow:hidden boundary.
+		if ( $is_thumb ) {
+			echo '<div class="wpk-slider-outer" id="' . esc_attr( 'wpk-slider-outer-' . $slider_id ) . '">';
+		}
 		?>
 		<div
-			class="wpk-slider wpk-slider--<?php echo esc_attr( $direction ); ?>"
+			class="<?php echo esc_attr( implode( ' ', $slider_css_classes ) ); ?>"
 			id="wpk-slider-<?php echo esc_attr( (string) $slider_id ); ?>"
 			role="region"
 			aria-roledescription="carousel"
@@ -73,7 +108,7 @@ class SliderRenderer {
 			style="--wpk-slider-height:<?php echo esc_attr( $cfg['height'] ); ?>;"
 			data-config="<?php echo esc_attr( $cfg_json ); ?>"
 		>
-			<div class="wpk-slider-track" aria-live="off">
+			<div class="<?php echo esc_attr( implode( ' ', $track_css_classes ) ); ?>" aria-live="off">
 				<?php foreach ( $slides as $index => $slide ) : ?>
 					<?php
 					$slide = wp_parse_args(
@@ -92,24 +127,49 @@ class SliderRenderer {
 							'overlay_color'   => $cfg['overlay_color'],
 							'text_align'      => 'center',
 							'custom_class'    => '',
+							'custom_speed'    => 0,
+							'custom_easing'   => '',
 						)
 					);
 
-					$slide_class = 'wpk-slide wpk-text-' . sanitize_html_class( $slide['text_align'] );
+					$slide_classes = $slide_extra_class . ' wpk-text-' . sanitize_html_class( $slide['text_align'] );
 					if ( ! empty( $slide['custom_class'] ) ) {
-						$slide_class .= ' ' . sanitize_html_class( $slide['custom_class'] );
+						$slide_classes .= ' ' . sanitize_html_class( $slide['custom_class'] );
 					}
 
-					$has_image   = ! empty( $slide['image_url'] );
-					$bg_style    = $has_image ? ' style="background-image:url(' . esc_url( $slide['image_url'] ) . ');"' : '';
-					$pos         = $index + 1;
+					$has_image = ! empty( $slide['image_url'] );
+					$pos       = $index + 1;
+
+					// Lazy mode: output data-bg instead of inline background-image.
+					// slider.js / swiper-init.js loads the image via IntersectionObserver.
+					$bg_attr = '';
+					if ( $has_image ) {
+						if ( $is_lazy ) {
+							$slide_classes .= ' wpk-slide-lazy';
+							$bg_attr        = ' data-bg="' . esc_attr( $slide['image_url'] ) . '"';
+						} else {
+							$bg_attr = ' style="background-image:url(' . esc_url( $slide['image_url'] ) . ');"';
+						}
+					}
+
+					// Per-slide timing overrides (consumed by slider.js).
+					$timing_attrs = '';
+					if ( ! empty( $slide['custom_speed'] ) && (int) $slide['custom_speed'] > 0 ) {
+						$timing_attrs .= ' data-speed="' . esc_attr( (string) (int) $slide['custom_speed'] ) . '"';
+					}
+					if ( ! empty( $slide['custom_easing'] ) ) {
+						$timing_attrs .= ' data-easing="' . esc_attr( $slide['custom_easing'] ) . '"';
+					}
 					?>
 					<div
-						class="<?php echo esc_attr( $slide_class ); ?>"
+						class="<?php echo esc_attr( $slide_classes ); ?>"
 						role="group"
 						aria-roledescription="slide"
 						aria-label="<?php printf( /* translators: 1: slide number, 2: total count */ esc_attr__( 'Slide %1$d of %2$d', 'wp-koumbit-slider' ), $pos, $total ); ?>"
-						<?php echo $bg_style; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — bg_style is already escaped above ?>
+						<?php
+						// phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — bg_attr and timing_attrs are escaped above
+						echo $bg_attr . $timing_attrs;
+						?>
 					>
 						<?php if ( (float) $slide['overlay_opacity'] > 0 ) : ?>
 							<div
@@ -156,13 +216,74 @@ class SliderRenderer {
 				</button>
 			<?php endif; ?>
 
-			<?php if ( 'none' !== $cfg['pagination'] ) : ?>
+			<?php if ( ! $is_thumb && 'none' !== $cfg['pagination'] ) : ?>
 				<div
 					class="wpk-slider-pagination wpk-pagination-<?php echo esc_attr( $cfg['pagination'] ); ?>"
 					role="tablist"
 					aria-label="<?php esc_attr_e( 'Slide navigation', 'wp-koumbit-slider' ); ?>"
 				></div>
 			<?php endif; ?>
+		</div>
+		<?php
+
+		if ( $is_thumb ) {
+			echo $this->render_thumbstrip( $slides, $slider_id, $total ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — render_thumbstrip escapes all output
+			echo '</div>';
+		}
+
+		return ob_get_clean() ?: '';
+	}
+
+	/**
+	 * Renders the thumbnail strip for thumbstrip pagination mode.
+	 *
+	 * @param array<int,array<string,mixed>> $slides
+	 * @param int                            $slider_id
+	 * @param int                            $total
+	 * @return string
+	 */
+	private function render_thumbstrip( array $slides, int $slider_id, int $total ): string {
+		ob_start();
+		?>
+		<div
+			class="wpk-slider-thumbstrip"
+			role="tablist"
+			aria-label="<?php esc_attr_e( 'Slide navigation', 'wp-koumbit-slider' ); ?>"
+			data-slider="wpk-slider-<?php echo esc_attr( (string) $slider_id ); ?>"
+		>
+			<?php foreach ( $slides as $index => $slide ) : ?>
+				<?php
+				$thumb_url = ! empty( $slide['image_url'] ) ? $slide['image_url'] : '';
+				$title     = ! empty( $slide['title'] ) ? $slide['title'] : sprintf(
+					/* translators: %d: slide number */
+					__( 'Slide %d', 'wp-koumbit-slider' ),
+					$index + 1
+				);
+				?>
+				<button
+					type="button"
+					class="wpk-thumb<?php echo 0 === $index ? ' wpk-thumb-active' : ''; ?>"
+					role="tab"
+					aria-selected="<?php echo 0 === $index ? 'true' : 'false'; ?>"
+					aria-controls="wpk-slider-<?php echo esc_attr( (string) $slider_id ); ?>"
+					aria-label="<?php echo esc_attr( $title ); ?>"
+					data-index="<?php echo esc_attr( (string) $index ); ?>"
+				>
+					<?php if ( $thumb_url ) : ?>
+						<img
+							src="<?php echo esc_url( $thumb_url ); ?>"
+							alt=""
+							width="80"
+							height="54"
+							loading="lazy"
+						/>
+					<?php else : ?>
+						<span class="wpk-thumb-placeholder" aria-hidden="true">
+							<?php echo esc_html( (string) ( $index + 1 ) ); ?>
+						</span>
+					<?php endif; ?>
+				</button>
+			<?php endforeach; ?>
 		</div>
 		<?php
 		return ob_get_clean() ?: '';

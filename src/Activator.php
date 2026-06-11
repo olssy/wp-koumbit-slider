@@ -21,7 +21,9 @@ class Activator {
 
 		// Global defaults — only set if not already present.
 		$defaults = array(
-			'wpk_slider_menu_location' => 'suite',
+			'wpk_slider_menu_location'   => 'suite',
+			'wpk_slider_swiper_js_url'   => '',
+			'wpk_slider_swiper_css_url'  => '',
 		);
 
 		foreach ( $defaults as $key => $value ) {

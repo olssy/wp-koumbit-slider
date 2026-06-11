@@ -3,7 +3,7 @@
  * Plugin Name:       WP Koumbit Slider
  * Plugin URI:        https://github.com/olssy/wp-koumbit-slider
  * Description:       Beautiful, accessible sliders for any WordPress site — simple by default, fully configurable for any client need.
- * Version:           1.0.0
+ * Version:           1.1.0
  * Requires at least: 6.4
  * Requires PHP:      8.1
  * Author:            Koumbit
@@ -16,7 +16,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'WPK_SLIDER_VERSION', '1.0.0' );
+define( 'WPK_SLIDER_VERSION', '1.1.0' );
 define( 'WPK_SLIDER_FILE', __FILE__ );
 define( 'WPK_SLIDER_PATH', plugin_dir_path( __FILE__ ) );
 define( 'WPK_SLIDER_URL', plugin_dir_url( __FILE__ ) );

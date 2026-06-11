@@ -227,10 +227,11 @@ class EditScreen {
 						<th scope="row"><label for="wpk-cfg-pagination"><?php esc_html_e( 'Pagination', 'wp-koumbit-slider' ); ?></label></th>
 						<td>
 							<select id="wpk-cfg-pagination" name="wpk_slider_config[pagination]">
-								<option value="bullets"  <?php selected( $get( 'pagination' ), 'bullets' );  ?>><?php esc_html_e( 'Bullet dots', 'wp-koumbit-slider' ); ?></option>
-								<option value="fraction" <?php selected( $get( 'pagination' ), 'fraction' ); ?>><?php esc_html_e( 'Fraction (1 / 4)', 'wp-koumbit-slider' ); ?></option>
-								<option value="progress" <?php selected( $get( 'pagination' ), 'progress' ); ?>><?php esc_html_e( 'Progress bar', 'wp-koumbit-slider' ); ?></option>
-								<option value="none"     <?php selected( $get( 'pagination' ), 'none' );     ?>><?php esc_html_e( 'None', 'wp-koumbit-slider' ); ?></option>
+								<option value="bullets"   <?php selected( $get( 'pagination' ), 'bullets' );   ?>><?php esc_html_e( 'Bullet dots', 'wp-koumbit-slider' ); ?></option>
+								<option value="fraction"  <?php selected( $get( 'pagination' ), 'fraction' );  ?>><?php esc_html_e( 'Fraction (1 / 4)', 'wp-koumbit-slider' ); ?></option>
+								<option value="progress"  <?php selected( $get( 'pagination' ), 'progress' );  ?>><?php esc_html_e( 'Progress bar', 'wp-koumbit-slider' ); ?></option>
+								<option value="thumbstrip" <?php selected( $get( 'pagination' ), 'thumbstrip' ); ?>><?php esc_html_e( 'Thumbnail strip', 'wp-koumbit-slider' ); ?></option>
+								<option value="none"      <?php selected( $get( 'pagination' ), 'none' );      ?>><?php esc_html_e( 'None', 'wp-koumbit-slider' ); ?></option>
 							</select>
 						</td>
 					</tr>
@@ -304,6 +305,37 @@ class EditScreen {
 						<td>
 							<input type="range" id="wpk-cfg-overlay-opacity" name="wpk_slider_config[overlay_opacity]" value="<?php echo esc_attr( (string) (float) $get( 'overlay_opacity' ) ); ?>" min="0" max="1" step="0.05" style="width:200px;" />
 							<output for="wpk-cfg-overlay-opacity"><?php echo esc_html( (string) (float) $get( 'overlay_opacity' ) ); ?></output>
+						</td>
+					</tr>
+				</table>
+			<?php } );
+
+			$this->render_section( __( 'Swiper Library', 'wp-koumbit-slider' ), false, function () use ( $get ): void { ?>
+				<p class="description" style="padding:0 0 8px;">
+					<?php esc_html_e( 'Enables Swiper.js for this slider, which adds 3D and advanced effects. Swiper is loaded from a CDN. Not needed for standard slide or fade effects.', 'wp-koumbit-slider' ); ?>
+				</p>
+				<table class="form-table wpk-config-table" role="presentation">
+					<tr>
+						<th scope="row"><?php esc_html_e( 'Enable Swiper', 'wp-koumbit-slider' ); ?></th>
+						<td>
+							<label>
+								<input type="checkbox" name="wpk_slider_config[use_swiper]" value="1" <?php checked( $get( 'use_swiper' ) ); ?> />
+								<?php esc_html_e( 'Use Swiper.js for this slider', 'wp-koumbit-slider' ); ?>
+							</label>
+						</td>
+					</tr>
+					<tr>
+						<th scope="row"><label for="wpk-cfg-swiper-effect"><?php esc_html_e( 'Swiper effect', 'wp-koumbit-slider' ); ?></label></th>
+						<td>
+							<select id="wpk-cfg-swiper-effect" name="wpk_slider_config[swiper_effect]">
+								<option value="slide"      <?php selected( $get( 'swiper_effect' ), 'slide' );      ?>><?php esc_html_e( 'Slide', 'wp-koumbit-slider' ); ?></option>
+								<option value="fade"       <?php selected( $get( 'swiper_effect' ), 'fade' );       ?>><?php esc_html_e( 'Fade', 'wp-koumbit-slider' ); ?></option>
+								<option value="cube"       <?php selected( $get( 'swiper_effect' ), 'cube' );       ?>><?php esc_html_e( 'Cube (3D)', 'wp-koumbit-slider' ); ?></option>
+								<option value="flip"       <?php selected( $get( 'swiper_effect' ), 'flip' );       ?>><?php esc_html_e( 'Flip (3D)', 'wp-koumbit-slider' ); ?></option>
+								<option value="coverflow"  <?php selected( $get( 'swiper_effect' ), 'coverflow' );  ?>><?php esc_html_e( 'Coverflow', 'wp-koumbit-slider' ); ?></option>
+								<option value="cards"      <?php selected( $get( 'swiper_effect' ), 'cards' );      ?>><?php esc_html_e( 'Cards', 'wp-koumbit-slider' ); ?></option>
+							</select>
+							<p class="description"><?php esc_html_e( 'Cube, flip, coverflow, and cards automatically set slides-per-view to 1.', 'wp-koumbit-slider' ); ?></p>
 						</td>
 					</tr>
 				</table>
@@ -461,7 +493,7 @@ class EditScreen {
 			'autoplay_delay'          => max( 500, min( 30000, (int) ( $raw['autoplay_delay'] ?? $d['autoplay_delay'] ) ) ),
 			'autoplay_pause_on_hover' => ! empty( $raw['autoplay_pause_on_hover'] ) && '1' === $raw['autoplay_pause_on_hover'],
 			'navigation'              => ! empty( $raw['navigation'] ) && '1' === $raw['navigation'],
-			'pagination'              => in_array( $raw['pagination'] ?? '', array( 'bullets', 'fraction', 'progress', 'none' ), true ) ? $raw['pagination'] : $d['pagination'],
+			'pagination'              => in_array( $raw['pagination'] ?? '', array( 'bullets', 'fraction', 'progress', 'thumbstrip', 'none' ), true ) ? $raw['pagination'] : $d['pagination'],
 			'keyboard'                => ! empty( $raw['keyboard'] ) && '1' === $raw['keyboard'],
 			'swipe'                   => ! empty( $raw['swipe'] ) && '1' === $raw['swipe'],
 			'slides_per_view'         => max( 1, min( 6, (int) ( $raw['slides_per_view'] ?? $d['slides_per_view'] ) ) ),
@@ -473,6 +505,8 @@ class EditScreen {
 			'direction'               => in_array( $raw['direction'] ?? '', array( 'horizontal', 'vertical' ), true ) ? $raw['direction'] : $d['direction'],
 			'overlay_color'           => sanitize_hex_color( $raw['overlay_color'] ?? $d['overlay_color'] ) ?? $d['overlay_color'],
 			'overlay_opacity'         => max( 0.0, min( 1.0, (float) ( $raw['overlay_opacity'] ?? $d['overlay_opacity'] ) ) ),
+			'use_swiper'              => ! empty( $raw['use_swiper'] ) && '1' === $raw['use_swiper'],
+			'swiper_effect'           => in_array( $raw['swiper_effect'] ?? '', array( 'slide', 'fade', 'cube', 'flip', 'coverflow', 'cards' ), true ) ? $raw['swiper_effect'] : $d['swiper_effect'],
 		);
 	}
 
@@ -503,6 +537,8 @@ class EditScreen {
 			'direction'               => 'horizontal',
 			'overlay_color'           => '#000000',
 			'overlay_opacity'         => 0.0,
+			'use_swiper'              => false,
+			'swiper_effect'           => 'slide',
 		);
 	}
 }
