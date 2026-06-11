@@ -21,6 +21,12 @@ defined( 'ABSPATH' ) || exit;
  */
 class FrontendAssets {
 
+	/**
+	 * Registers the wp_enqueue_scripts hooks for asset registration and conditional loading.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function init(): void {
 		add_action( 'wp_enqueue_scripts', array( $this, 'register' ), 5 );
 		add_action( 'wp_enqueue_scripts', array( $this, 'maybe_enqueue' ) );
@@ -54,6 +60,12 @@ class FrontendAssets {
 		);
 	}
 
+	/**
+	 * Enqueues the core slider assets when the current page contains a slider.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function maybe_enqueue(): void {
 		global $post;
 

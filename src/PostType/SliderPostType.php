@@ -21,6 +21,12 @@ class SliderPostType {
 
 	const POST_TYPE = 'wpk_slider';
 
+	/**
+	 * Registers the CPT and list-table column hooks.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function init(): void {
 		add_action( 'init', array( $this, 'register_post_type' ) );
 		add_filter( 'manage_wpk_slider_posts_columns', array( $this, 'columns' ) );

@@ -57,14 +57,10 @@
 	}
 
 	// -------------------------------------------------------------------------
-	// Config form → hidden JSON sync
+	// Config form — range output display sync
 	// -------------------------------------------------------------------------
 	function initConfigSync() {
-		const configForm = document.getElementById( 'wpk-slider-config-form' );
-		const configJson = document.getElementById( 'wpk-config-json' );
-		if ( ! configForm || ! configJson ) return;
-
-		// Sync range output display.
+		// Sync the opacity range's <output> element as the slider moves.
 		const opacityRange = document.getElementById( 'wpk-cfg-overlay-opacity' );
 		if ( opacityRange ) {
 			const output = opacityRange.nextElementSibling;

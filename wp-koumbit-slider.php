@@ -58,6 +58,12 @@ final class WPK_Slider_Plugin {
 	/** @var WPK_Slider_Plugin|null */
 	private static ?WPK_Slider_Plugin $instance = null;
 
+	/**
+	 * Returns the singleton instance, creating it on the first call.
+	 *
+	 * @since 1.0.0
+	 * @return self
+	 */
 	public static function instance(): self {
 		if ( null === self::$instance ) {
 			self::$instance = new self();

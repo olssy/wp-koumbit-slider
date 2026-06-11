@@ -77,7 +77,7 @@ class SliderRenderer {
 				'lazy'                 => (bool) $cfg['lazy'],
 				'direction'            => $direction,
 			)
-		);
+		) ?: '{}';
 
 		$slider_css_classes = array( 'wpk-slider', 'wpk-slider--' . $direction );
 		$track_css_classes  = array( 'wpk-slider-track' );
@@ -227,7 +227,7 @@ class SliderRenderer {
 		<?php
 
 		if ( $is_thumb ) {
-			echo $this->render_thumbstrip( $slides, $slider_id, $total ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — render_thumbstrip escapes all output
+			echo $this->render_thumbstrip( $slides, $slider_id ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped — render_thumbstrip escapes all output
 			echo '</div>';
 		}
 
@@ -237,12 +237,11 @@ class SliderRenderer {
 	/**
 	 * Renders the thumbnail strip for thumbstrip pagination mode.
 	 *
-	 * @param array<int,array<string,mixed>> $slides
-	 * @param int                            $slider_id
-	 * @param int                            $total
-	 * @return string
+	 * @param array<int,array<string,mixed>> $slides    Slide data array.
+	 * @param int                            $slider_id The wpk_slider post ID.
+	 * @return string HTML output.
 	 */
-	private function render_thumbstrip( array $slides, int $slider_id, int $total ): string {
+	private function render_thumbstrip( array $slides, int $slider_id ): string {
 		ob_start();
 		?>
 		<div

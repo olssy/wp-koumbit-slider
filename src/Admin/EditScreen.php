@@ -27,12 +27,24 @@ defined( 'ABSPATH' ) || exit;
  */
 class EditScreen {
 
+	/**
+	 * Registers all edit-screen hooks.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function init(): void {
 		add_action( 'add_meta_boxes', array( $this, 'register_meta_boxes' ) );
 		add_action( 'save_post_' . SliderPostType::POST_TYPE, array( $this, 'save' ), 10, 1 );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue' ) );
 	}
 
+	/**
+	 * Registers the three meta boxes on the wpk_slider edit screen.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function register_meta_boxes(): void {
 		add_meta_box(
 			'wpk-slider-slides',
@@ -52,7 +64,6 @@ class EditScreen {
 			'default'
 		);
 
-		// Remove the default "Publish" box submit area padding for cleaner layout.
 		add_meta_box(
 			'wpk-slider-shortcode',
 			esc_html__( 'Shortcode', 'wp-koumbit-slider' ),
@@ -342,8 +353,6 @@ class EditScreen {
 			<?php } );
 			?>
 
-			<textarea name="wpk_slider_config_json" id="wpk-config-json" style="display:none;" aria-hidden="true"></textarea>
-
 		</div>
 		<?php
 	}
@@ -398,7 +407,7 @@ class EditScreen {
 			: array();
 
 		$config = $this->sanitize_config( wp_unslash( $raw_config ) );
-		update_post_meta( $post_id, '_wpk_slider_config', wp_slash( wp_json_encode( $config ) ) );
+		update_post_meta( $post_id, '_wpk_slider_config', wp_slash( wp_json_encode( $config ) ?: '{}' ) );
 	}
 
 	/**

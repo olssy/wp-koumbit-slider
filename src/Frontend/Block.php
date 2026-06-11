@@ -16,10 +16,22 @@ defined( 'ABSPATH' ) || exit;
  */
 class Block {
 
+	/**
+	 * Registers the block type on the init action.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function init(): void {
 		add_action( 'init', array( $this, 'register' ) );
 	}
 
+	/**
+	 * Registers the wpk-slider/slider block type from block.json.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function register(): void {
 		register_block_type(
 			WPK_SLIDER_PATH . 'block.json',

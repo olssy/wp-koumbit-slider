@@ -21,10 +21,23 @@ class AdminMenu {
 
 	const PAGE_SLUG = 'edit.php?post_type=wpk_slider';
 
+	/**
+	 * Registers the admin_menu hook.
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function init(): void {
 		add_action( 'admin_menu', array( $this, 'register_menu' ) );
 	}
 
+	/**
+	 * Adds the Sliders entry to the admin menu at the location stored in
+	 * the wpk_slider_menu_location option (suite | main | tools).
+	 *
+	 * @since 1.0.0
+	 * @return void
+	 */
 	public function register_menu(): void {
 		$location = get_option( 'wpk_slider_menu_location', 'suite' );
 

@@ -16,6 +16,11 @@ defined( 'ABSPATH' ) || exit;
  */
 class Widget extends \WP_Widget {
 
+	/**
+	 * Registers the widget with its ID, title, and description.
+	 *
+	 * @since 1.0.0
+	 */
 	public function __construct() {
 		parent::__construct(
 			'wpk_slider_widget',
